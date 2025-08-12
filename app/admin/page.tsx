@@ -49,7 +49,7 @@ export default async function AdminPage() {
 
             <tbody className="divide-y divide-white/10">
               {bookings.map((b) => (
-                <tr key={b.id} className="odd:bg-white/5">
+                <tr key={b.id} className="">
                   <Td>{b.name}</Td>
                   <Td>{b.street}</Td>
                   <Td className="whitespace-pre-wrap">{b.address}</Td>
