@@ -1,0 +1,386 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+type LQSuggestion = {
+  display_place?: string;
+  display_address?: string;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
+
+export default function BookingForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    street: "",
+    address: "",
+    email: "",
+    phone: "",
+    service: "",
+    date: "",
+    time: "",
+    notes: "",
+  });
+
+  // Autocomplete state
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<LQSuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const debounceId = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (debounceId.current) window.clearTimeout(debounceId.current);
+
+    if (!query || query.trim().length < 6) {
+      setResults([]);
+      setOpen(false);
+      return;
+    }
+
+    debounceId.current = window.setTimeout(async () => {
+      try {
+        const data = await fetchLocationIq(query);
+        setResults(data || []);
+        setOpen((data?.length ?? 0) > 0);
+      } catch {
+        setResults([]);
+        setOpen(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceId.current) window.clearTimeout(debounceId.current);
+    };
+  }, [query]);
+
+  const selectSuggestion = (s: LQSuggestion) => {
+    setFormData((prev) => ({ ...prev, address: s.display_name }));
+    setQuery(s.display_name);
+    setResults([]);
+    setOpen(false);
+  };
+
+  const handleFieldChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "address") {
+      setQuery(value);
+      if (value.length <= 2) {
+        setResults([]);
+        setOpen(false);
+      }
+    }
+  };
+
+  async function fetchLocationIq(q: string) {
+    const key = process.env.NEXT_PUBLIC_LOCATION_IQ_API_KEY;
+    if (!key) throw new Error("Missing NEXT_PUBLIC_LOCATION_IQ_API_KEY");
+
+    const url = new URL("https://us1.locationiq.com/v1/autocomplete");
+    url.search = new URLSearchParams({
+      key,
+      q: q.trim(),
+      limit: "5",
+      countrycodes: "us",
+      dedupe: "1",
+    }).toString();
+
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      ...formData,
+      // ensure HH:mm:ss
+      time: formData.time.length === 5 ? `${formData.time}:00` : formData.time,
+    };
+
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert("Booking submitted!");
+        setFormData({
+          name: "",
+          street: "",
+          address: "",
+          email: "",
+          phone: "",
+          service: "",
+          date: "",
+          time: "",
+          notes: "",
+        });
+        setQuery("");
+        setResults([]);
+        setOpen(false);
+      } else {
+        alert("Failed to submit booking.");
+      }
+    } catch {
+      alert("Error submitting form");
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      autoComplete="off"
+      className="mx-auto w-full max-w-xl rounded-2xl border border-white/10 bg-gray-800/60 p-6 shadow-sm backdrop-blur"
+    >
+      <h2 className="text-2xl font-semibold text-white">Book Your Service</h2>
+      <p className="mt-1 text-sm text-gray-400">
+        We’ll confirm by email or phone.
+      </p>
+
+      <div className="mt-6 grid grid-cols-1 gap-4">
+        {/* Name */}
+        <div>
+          <label
+            htmlFor="name"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleFieldChange}
+            required
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none ring-0 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            placeholder="Full name"
+          />
+        </div>
+
+        {/* Street (optional) */}
+        <div>
+          <label
+            htmlFor="street"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Street
+          </label>
+          <input
+            id="street"
+            name="street"
+            type="text"
+            value={formData.street}
+            onChange={handleFieldChange}
+            placeholder="Street / House no. (optional)"
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+          />
+        </div>
+
+        {/* Address with autocomplete */}
+        <div className="relative">
+          <label
+            htmlFor="address"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Address
+          </label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleFieldChange}
+            onFocus={() => results.length > 0 && setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 150)}
+            required
+            placeholder="Start typing address…"
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            aria-autocomplete="list"
+            aria-controls="address-suggestions"
+            aria-expanded={open}
+          />
+
+          {open && results.length > 0 && (
+            <ul
+              id="address-suggestions"
+              role="listbox"
+              className="absolute z-50 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-white/10 bg-gray-900 shadow-lg"
+            >
+              {results.map((r, i) => (
+                <li
+                  key={`${r.display_name}-${i}`}
+                  role="option"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => selectSuggestion(r)}
+                  className="cursor-pointer px-3 py-2 hover:bg-white/5"
+                >
+                  <div className="text-sm text-white">
+                    {r.display_place || r.display_name}
+                  </div>
+                  {r.display_address && (
+                    <div className="text-xs text-gray-400">
+                      {r.display_address}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleFieldChange}
+            required
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            placeholder="you@example.com"
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label
+            htmlFor="phone"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Phone
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleFieldChange}
+            required
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            placeholder="(555) 123-4567"
+          />
+        </div>
+
+        {/* Service */}
+        <div>
+          <label
+            htmlFor="service"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Service
+          </label>
+          <select
+            id="service"
+            name="service"
+            value={formData.service}
+            onChange={handleFieldChange}
+            required
+            className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+          >
+            <option value="" className="bg-gray-900">
+              Select a service
+            </option>
+            <option value="Exterior Wash" className="bg-gray-900">
+              Exterior Wash
+            </option>
+            <option value="Interior Detail" className="bg-gray-900">
+              Interior Detail
+            </option>
+            <option value="Full Detail" className="bg-gray-900">
+              Full Detail
+            </option>
+            <option value="Engine Bay Clean" className="bg-gray-900">
+              Engine Bay Clean
+            </option>
+          </select>
+        </div>
+
+        {/* Date & Time */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="date"
+              className="mb-1 block text-sm font-medium text-gray-300"
+            >
+              Date
+            </label>
+            <input
+              id="date"
+              name="date"
+              type="date"
+              value={formData.date}
+              onChange={handleFieldChange}
+              required
+              className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="time"
+              className="mb-1 block text-sm font-medium text-gray-300"
+            >
+              Time
+            </label>
+            <input
+              id="time"
+              name="time"
+              type="time"
+              step="60"
+              value={formData.time}
+              onChange={handleFieldChange}
+              required
+              className="block w-full rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+            />
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label
+            htmlFor="notes"
+            className="mb-1 block text-sm font-medium text-gray-300"
+          >
+            Additional Notes (optional)
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            value={formData.notes}
+            onChange={handleFieldChange}
+            rows={4}
+            placeholder="Any special requests, gate codes, pets, etc."
+            className="block w-full resize-y rounded-xl border border-white/10 bg-gray-900/70 px-3 py-2 text-white placeholder-gray-400 outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/40"
+          />
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="mt-2 inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-2 font-semibold text-white shadow hover:bg-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 active:bg-indigo-600"
+        >
+          Book Now
+        </button>
+      </div>
+    </form>
+  );
+}

@@ -1,5 +1,6 @@
 import Image from "next/image";
+import BookingForm from "./components/booking-form";
 
 export default function Home() {
-  return <h1 className="">welcome</h1>;
+  return <BookingForm />;
 }
