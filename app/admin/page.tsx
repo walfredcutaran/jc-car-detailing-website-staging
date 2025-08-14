@@ -26,6 +26,8 @@ export default async function AdminPage() {
         Welcome! Here you can view bookings.
       </p>
 
+      <button> Filter </button>
+
       <section className="mt-6 rounded-2xl border border-white/10 bg-gray-800/60 p-4 sm:p-6 shadow-sm backdrop-blur">
         <h2 className="text-lg font-semibold">Bookings</h2>
 
