@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jucee Car Detailing Website
 
-## Getting Started
+A full-stack application for scheduling car detailing services. It uses **Next.js 15** and **React 19** with the App Router. Styling is handled by **Tailwind CSS 4**, and data is stored in a PostgreSQL database accessed through **Prisma**.
 
-First, run the development server:
+## Features
+
+- Public pages for browsing services and submitting booking requests
+- Admin dashboard to manage incoming bookings
+- RESTful API routes built with Next.js route handlers
+- Type-safe database access via Prisma Client
+
+## Prerequisites
+
+- Node.js 18 or newer
+- PostgreSQL database
+
+Create a `.env` file in the project root and provide a connection string:
+
+```bash
+DATABASE_URL="postgres://USER:PASSWORD@HOST:PORT/DATABASE"
+```
+
+## Installation
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+## Development
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Linting
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run ESLint to check for code issues:
 
-## Learn More
+```bash
+npm run lint
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Production Build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create an optimized build and start the server:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm start
+```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/            # Next.js pages, components, and API routes
+prisma/         # Prisma schema and database client
+public/         # Static assets
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+| Variable       | Description                    |
+| -------------- | ------------------------------ |
+| `DATABASE_URL` | PostgreSQL connection string   |
+
+## License
+
+This project is provided as-is for learning and demonstration purposes.
+
