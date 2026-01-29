@@ -2,13 +2,20 @@
 
 /* Light defaults (mobile-first) */
 :root {
-  --background: #ffffff; /* Tailwind white */
-  --surface: #f9fafb; /* gray-50 cards/sections */
-  --foreground: #0f172a; /* slate-900 text */
-  --muted: #64748b; /* slate-500 */
-  --border: rgba(2, 6, 23, 0.08); /* subtle border on light */
-  --accent: #6366f1; /* indigo-500 */
+  --background: #ffffff;
+  /* Tailwind white */
+  --surface: #f9fafb;
+  /* gray-50 cards/sections */
+  --foreground: #0f172a;
+  /* slate-900 text */
+  --muted: #64748b;
+  /* slate-500 */
+  --border: rgba(2, 6, 23, 0.08);
+  /* subtle border on light */
+  --accent: #6366f1;
+  /* indigo-500 */
 }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -16,15 +23,35 @@
   --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
+@keyframes gloss {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(220%);
+  }
+
+  100% {
+    transform: translateX(220%);
+  }
+}
+
 /* Dark mode to match your header/footer */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #111827; /* gray-900 */
-    --surface: rgba(31, 41, 55, 0.6); /* gray-800/60 */
-    --foreground: #ffffff; /* white text */
-    --muted: #94a3b8; /* slate-400 */
-    --border: rgba(255, 255, 255, 0.1); /* white/10 */
-    --accent: #6366f1; /* indigo-500 */
+    --background: #111827;
+    /* gray-900 */
+    --surface: rgba(31, 41, 55, 0.6);
+    /* gray-800/60 */
+    --foreground: #ffffff;
+    /* white text */
+    --muted: #94a3b8;
+    /* slate-400 */
+    --border: rgba(255, 255, 255, 0.1);
+    /* white/10 */
+    --accent: #6366f1;
+    /* indigo-500 */
   }
 }
 
