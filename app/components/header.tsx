@@ -20,13 +20,14 @@ export default function Header() {
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
               <span className="text-sm font-semibold text-white">J</span>
               <span className="text-sm font-semibold text-white">C</span>
-
             </span>
-
             <span className="text-sm font-semibold text-white">
               JuCee Detailing Service
             </span>
           </Link>
+          <span className="inline-flex items-center rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-300">
+            STAGING
+          </span>
         </div>
 
         {/* Desktop */}
